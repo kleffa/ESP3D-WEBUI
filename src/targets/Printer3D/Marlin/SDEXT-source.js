@@ -35,7 +35,7 @@ const formatFileSerialLine = (lines) => {
         .map((item) => item[1].trim())
         .join('|')
     const lineParserPattern = `^(?:(?<path>.*\\.(?:${extensionsPattern}))? *(?<size>\\d+)? )?(?:(?<pathAlt>.*\\.(?:${extensionsPattern}))? *((?<sizeAlt>\\d*) *)?)$`
-    return lines.reduce((acc, file) => {
+    fileList = lines.reduce((acc, file) => {
         const fileRegex = new RegExp(lineParserPattern, 'ig')
         const m = fileRegex.exec(file.trim())
         if (m) {
@@ -45,6 +45,7 @@ const formatFileSerialLine = (lines) => {
                 {
                     name: pathAlt || path,
                     size: formatFileSizeToString(sizeAlt || size),
+                    
                 },
             ]
         }
@@ -124,17 +125,21 @@ const commands = {
         res.status = formatStatus(data.status)
         return res
     },
-    play: (path, filename) => {
+   play: (path, filename) => {
+        const index = fileList.findIndex((name) => name.endsWith(filename))
+        const shortName = index !== -1 ? fileList[index].split(' ')[0] : filename
         const spath = (path + (path == '/' ? '' : '/') + filename).replaceAll('//', '/')
-        const cmd = useUiContextFn.getValue('sdextplaycmd').replace('#', spath)
+        const cmd = useUiContextFn.getValue('sdextplaycmd').replace('#', shortName)
         return {
             type: 'cmd',
             cmd,
         }
     },
     delete: (path, filename) => {
+        const index = fileList.findIndex((name) => name.endsWith(filename))
+        const shortName = index !== -1 ? fileList[index].split(' ')[0] : filename
         const spath = (path + (path == '/' ? '' : '/') + filename).replaceAll('//', '/')
-        const cmd =  useUiContextFn.getValue('sdextdeletecmd').replace("#",spath)
+        const cmd = useUiContextFn.getValue('sdextdeletecmd').replace("#", shortName)
         return {
             type: 'cmd',
             cmd,
